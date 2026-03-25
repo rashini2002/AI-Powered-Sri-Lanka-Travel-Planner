@@ -4,6 +4,8 @@ import { MapPin, Users, Calendar, Sparkles, CloudSun, UserCircle, Loader2, Trend
 import { Link } from 'react-router';
 import { destinations } from '../data/destinations';
 import { toast } from 'sonner';
+import { createTrip } from "../../services/api";
+// import MapView from "../../components/MapView";
 
 export function TripPlanner() {
   const {
@@ -33,34 +35,51 @@ export function TripPlanner() {
         : [...prev, category]
     );
   };
+const [result, setResult] = useState<any>(null);
+const [loading, setLoading] = useState(false);
 
-  const handleGenerateSmartPlan = () => {
+  const handleGeneratePlan = async () => {
     setIsGenerating(true);
-    
-    // Simulate AI processing
+
+    // Simulate AI processing for recommendations
     setTimeout(() => {
       const filtered = destinations.filter(dest => {
         const matchesBudget = dest.costPerDay >= budgetRange[0] && dest.costPerDay <= budgetRange[1];
         const matchesWeather = weatherPref === 'cool' ? dest.temperature < 25 : dest.temperature >= 25;
         const matchesCrowd = crowdPref === 'low' ? dest.crowdLevel === 'Low' : 
-                           crowdPref === 'medium' ? dest.crowdLevel === 'Medium' : 
-                           dest.crowdLevel === 'High';
+          crowdPref === 'medium' ? dest.crowdLevel === 'Medium' : 
+          dest.crowdLevel === 'High';
         const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(dest.category);
-        
         return matchesBudget && matchesWeather && matchesCrowd && matchesCategory;
       });
-
       setRecommendations(filtered.slice(0, 4));
       setIsGenerating(false);
       toast.success('Smart plan generated successfully!');
     }, 2000);
+
+    // Prepare data for backend trip plan (if needed)
+    const data = {
+      budget: budgetRange[1], // use upper value as max budget per day
+      days: travelDays,
+      travel_type: travelStyle.toLowerCase(),
+    };
+
+    try {
+      setLoading(true);
+      const response = await createTrip(data);
+      setResult(response);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getMatchScore = (dest: typeof destinations[0]) => {
     let score = 70;
     if (dest.costPerDay >= budgetRange[0] && dest.costPerDay <= budgetRange[1]) score += 10;
     if ((weatherPref === 'cool' && dest.temperature < 25) || (weatherPref === 'warm' && dest.temperature >= 25)) score += 10;
-    if (dest.crowdLevel === crowdPref) score += 10;
+    if (dest.crowdLevel.toLowerCase() === crowdPref) score += 10;
     return Math.min(score, 98);
   };
 
@@ -234,7 +253,7 @@ export function TripPlanner() {
               {/* Generate Smart Plan */}
               <div>
                 <button
-                  onClick={handleGenerateSmartPlan}
+                  onClick={handleGeneratePlan}
                   className={`w-full px-4 py-3 rounded-lg transition-all ${
                     isGenerating ? 'bg-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-[#0369a1] to-[#059669] hover:shadow-lg'
                   }`}
@@ -259,7 +278,12 @@ export function TripPlanner() {
 
               <div className="text-center z-10">
                 <MapPin className="text-white mx-auto mb-4" size={48} />
-                <p className="text-white text-lg mb-2">Interactive Map View</p>
+                <Link
+                  to="/mapview"
+                  className="inline-block bg-white/20 text-white text-lg mb-2 px-6 py-2 rounded-lg border border-white hover:bg-white hover:text-[#0369a1] transition-all"
+                >
+                  Interactive Map View
+                </Link>
                 <p className="text-white/80 text-sm px-4">
                   {selectedDestinations.length > 0
                     ? `${selectedDestinations.length} destinations on your route`
@@ -271,7 +295,7 @@ export function TripPlanner() {
             {selectedDestinations.length > 0 && (
               <div className="mt-6 space-y-2">
                 <p className="text-sm text-gray-600 mb-3">Selected Destinations:</p>
-                {selectedDestinations.map((dest, index) => (
+                {selectedDestinations.map((dest: typeof destinations[0], index: number) => (
                   <div key={dest.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <div className="bg-gradient-to-br from-[#0369a1] to-[#059669] w-8 h-8 rounded-full flex items-center justify-center text-white">
                       {index + 1}
@@ -290,6 +314,20 @@ export function TripPlanner() {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h3 className="text-2xl mb-6">Trip Summary</h3>
 
+            {result && (
+  <div className="mt-4">
+    <h3 className="font-semibold">Recommended Places:</h3>
+    {result && result.trip_plan && (
+  <div className="mt-4">
+    {result.trip_plan.map((place: string, i: number) => (
+      <div key={i} className="p-2 bg-gray-100 rounded mb-2">
+        📍 {place}
+      </div>
+    ))}
+  </div>
+)}
+  </div>
+)}
             <div className="space-y-4 mb-6">
               <div className="bg-gradient-to-r from-[#fef3c7] to-[#fef9e7] p-4 rounded-lg">
                 <p className="text-sm text-gray-600 mb-1">Total Days</p>
@@ -298,6 +336,7 @@ export function TripPlanner() {
 
               <div className="bg-gradient-to-r from-[#fef3c7] to-[#fef9e7] p-4 rounded-lg">
                 <p className="text-sm text-gray-600 mb-1">Destinations</p>
+                <p>{result ? result.trip_plan.length : 0}</p>
                 <p className="text-3xl">{selectedDestinations.length}</p>
               </div>
 

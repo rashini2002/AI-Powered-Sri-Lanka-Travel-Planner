@@ -4,6 +4,7 @@ import { MapPin, Calendar, DollarSign, Cloud, Lightbulb } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Link } from 'react-router';
 
+
 export function Summary() {
   const { selectedDestinations, travelDays, numberOfTravelers, travelStyle } = useTripStore();
 

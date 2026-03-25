@@ -3,6 +3,7 @@ import { Layout } from './components/Layout';
 import { Landing } from './pages/Landing';
 import { Explore } from './pages/Explore';
 import { TripPlanner } from './pages/TripPlanner';
+import MapView from '../components/MapView';
 import { Itinerary } from './pages/Itinerary';
 import { Budget } from './pages/Budget';
 import { Summary } from './pages/Summary';
@@ -16,6 +17,7 @@ export const router = createBrowserRouter([
       { index: true, Component: Landing },
       { path: 'explore', Component: Explore },
       { path: 'planner', Component: TripPlanner },
+      { path: 'mapview', Component: MapView },
       { path: 'itinerary', Component: Itinerary },
       { path: 'budget', Component: Budget },
       { path: 'insights', Component: Insights },
