@@ -1,5 +1,7 @@
 import { Star, MapPin, Plus, DollarSign, Thermometer, Users, Calendar, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTripStore } from '../store/tripStore';
+
 
 interface DestinationCardProps {
   name: string;
@@ -39,6 +41,8 @@ export function DestinationCard({
       default: return 'bg-gray-100 text-gray-700';
     }
   };
+
+
 
   return (
     <motion.div

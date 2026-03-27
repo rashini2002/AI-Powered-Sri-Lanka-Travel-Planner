@@ -6,6 +6,7 @@ import { useTripStore } from '../store/tripStore';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
 
+
 const categories = ['All', 'Beach', 'Adventure', 'Cultural'];
 const sortOptions = [
   { value: 'default', label: 'Default' },

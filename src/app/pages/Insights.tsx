@@ -2,16 +2,26 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { TrendingUp, DollarSign, Calendar, MapPin, ThermometerSun, Users } from 'lucide-react';
 import { KPICard } from '../components/KPICard';
 import { destinations } from '../data/destinations';
+import { useTripStore } from '../store/tripStore';
+import { useMemo } from "react";
+
+
 
 export function Insights() {
+    
+  const { selectedDestinations } = useTripStore();
+
+  const data = selectedDestinations.length
+  ? selectedDestinations
+  : [];
+
   // Calculate KPIs
-  const avgCost = Math.round(destinations.reduce((sum, d) => sum + d.costPerDay, 0) / destinations.length);
-  const mostPopular = destinations.reduce((prev, current) => 
-    (prev.rating > current.rating) ? prev : current
-  );
+  const avgCost =
+  selectedDestinations.reduce((sum, d) => sum + (d.costPerDay || 50), 0) /
+  Math.max(selectedDestinations.length, 1);
 
   // Cost by destination data
-  const costData = destinations
+  const costData = selectedDestinations
     .sort((a, b) => a.costPerDay - b.costPerDay)
     .slice(0, 6)
     .map(d => ({
@@ -37,7 +47,7 @@ export function Insights() {
 
   // Category distribution
   const categoryData = Object.entries(
-    destinations.reduce((acc, d) => {
+    data.reduce((acc, d) => {
       acc[d.category] = (acc[d.category] || 0) + 1;
       return acc;
     }, {} as Record<string, number>)
@@ -46,12 +56,12 @@ export function Insights() {
   const COLORS = ['#0369a1', '#059669', '#fbbf24', '#8b5cf6', '#f59e0b'];
 
   // Get least crowded destinations
-  const leastCrowded = destinations
+  const leastCrowded = selectedDestinations
     .filter(d => d.crowdLevel === 'Low')
     .slice(0, 3);
 
   // Get budget destinations
-  const budgetDests = destinations
+  const budgetDests = selectedDestinations
     .sort((a, b) => a.costPerDay - b.costPerDay)
     .slice(0, 3);
 
@@ -81,7 +91,7 @@ export function Insights() {
           />
           <KPICard
             title="Total Destinations"
-            value={destinations.length}
+            value={selectedDestinations.length}
             icon={MapPin}
             color="from-[#fbbf24] to-[#f59e0b]"
           />

@@ -5,8 +5,7 @@ import { Link } from 'react-router';
 import { destinations } from '../data/destinations';
 import { toast } from 'sonner';
 import { createTrip } from "../../services/api";
-import MapView from "../../components/MapView";
-import {selectedDestinations} from "../store/tripStore";
+
 
 export function TripPlanner() {
   const {
@@ -114,10 +113,6 @@ const [loading, setLoading] = useState(false);
     return `Perfect for ${reasons.join(', ')}`;
   };
 
-  const estimatedCost = () => {
-    const basePerDay = travelStyle === 'Budget' ? 50 : travelStyle === 'Standard' ? 100 : 200;
-    return basePerDay * travelDays * numberOfTravelers;
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-[#fef9e7] py-12">
@@ -365,7 +360,7 @@ const [loading, setLoading] = useState(false);
                     <div key={place.id || index}>{place.name}</div>
                   ))
                 )}
-                
+
                 <p>{result && Array.isArray(result.trip_plan) ? result.trip_plan.length : 0}</p>
                 <p className="text-3xl">{selectedDestinations.length}</p>
               </div>
@@ -374,13 +369,6 @@ const [loading, setLoading] = useState(false);
                 <p className="text-sm text-gray-600 mb-1">Travel Style</p>
                 <p className="text-xl">{travelStyle}</p>
               </div>
-
-              <div className="bg-gradient-to-r from-[#0369a1] to-[#059669] text-white p-4 rounded-lg">
-                <p className="text-sm text-white/90 mb-1">Estimated Cost</p>
-                <p className="text-3xl">${estimatedCost().toLocaleString()}</p>
-                <p className="text-xs text-white/80 mt-1">For {numberOfTravelers} traveler(s)</p>
-              </div>
-            </div>
 
             <div className="space-y-3">
               {selectedDestinations.length === 0 && (
@@ -464,5 +452,6 @@ const [loading, setLoading] = useState(false);
         )}
       </div>
     </div>
+  </div>
   );
   }

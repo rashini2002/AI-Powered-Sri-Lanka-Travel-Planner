@@ -5,6 +5,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { Link } from 'react-router';
 
 
+
 export function Summary() {
   const { selectedDestinations, travelDays, numberOfTravelers, travelStyle } = useTripStore();
 

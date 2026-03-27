@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { Destination } from '../data/destinations';
 
 interface TripStore {
@@ -13,32 +14,40 @@ interface TripStore {
   setTravelStyle: (style: 'Budget' | 'Standard' | 'Luxury') => void;
   setNumberOfTravelers: (count: number) => void;
   resetStore: () => void;
+  
 }
 
-export const useTripStore = create<TripStore>((set) => ({
-  selectedDestinations: [],
-  travelDays: 7,
-  travelStyle: 'Standard',
-  numberOfTravelers: 2,
-  addDestination: (destination) =>
-    set((state) => ({
-      selectedDestinations: [...state.selectedDestinations, destination],
-    })),
-  removeDestination: (id) =>
-    set((state) => ({
-      selectedDestinations: state.selectedDestinations.filter((d) => d.id !== id),
-    })),
-  setSelectedDestinations: (destinations) => set({ selectedDestinations: destinations }),
-  setTravelDays: (days) => set({ travelDays: days }),
-  setTravelStyle: (style) => set({ travelStyle: style }),
-  setNumberOfTravelers: (count) => set({ numberOfTravelers: count }),
-  resetStore: () => {
-    set({
+export const useTripStore = create<TripStore>()(
+  persist(
+    (set) => ({
       selectedDestinations: [],
       travelDays: 7,
       travelStyle: 'Standard',
       numberOfTravelers: 2,
-    });
-    localStorage.removeItem('tripSelectedDestinations');
-  },
-}));
+      addDestination: (destination) =>
+        set((state) => ({
+          selectedDestinations: [...state.selectedDestinations, destination],
+        })),
+      removeDestination: (id) =>
+        set((state) => ({
+          selectedDestinations: state.selectedDestinations.filter((d) => d.id !== id),
+        })),
+      setSelectedDestinations: (destinations) => set({ selectedDestinations: destinations }),
+      setTravelDays: (days) => set({ travelDays: days }),
+      setTravelStyle: (style) => set({ travelStyle: style }),
+      setNumberOfTravelers: (count) => set({ numberOfTravelers: count }),
+      resetStore: () => {
+        set({
+          selectedDestinations: [],
+          travelDays: 7,
+          travelStyle: 'Standard',
+          numberOfTravelers: 2,
+        });
+      },
+    }),
+    {
+      name: 'tripSelectedDestinations',
+      partialize: (state) => ({ selectedDestinations: state.selectedDestinations }),
+    }
+  )
+);

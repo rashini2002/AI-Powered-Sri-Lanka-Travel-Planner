@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTripStore } from '../store/tripStore';
 import { DollarSign, Car, Hotel, Utensils, MapPin } from 'lucide-react';
+import { useMemo } from "react";
 
 export function Budget() {
   const { travelDays, numberOfTravelers, travelStyle, selectedDestinations } = useTripStore();
@@ -8,6 +9,12 @@ export function Budget() {
   const [transportType, setTransportType] = useState('Car Rental');
   const [accommodationType, setAccommodationType] = useState('Hotel');
   const [foodBudget, setFoodBudget] = useState('Standard');
+
+  const baseDestinationCost = selectedDestinations.reduce(
+  (sum, d) => sum + ( 50),
+  0
+); 
+
 
   const calculateCosts = () => {
     // Base rates per day per person
@@ -18,9 +25,9 @@ export function Budget() {
     };
 
     const accommodationRates: Record<string, number> = {
-      'Hostel': 15,
-      'Hotel': 60,
-      'Luxury Resort': 200,
+      'Hostel': 45,
+      'Hotel': 120,
+      'Luxury Resort': 280,
     };
 
     const foodRates: Record<string, number> = {
@@ -29,12 +36,21 @@ export function Budget() {
       'Premium': 60,
     };
 
-    const activitiesRate = travelStyle === 'Budget' ? 20 : travelStyle === 'Standard' ? 40 : 80;
+    const activitiesRate =
+  travelStyle === "Budget"
+    ? 20
+    : travelStyle === "Standard"
+    ? 40
+    : 80;
 
-    const transport = transportRates[transportType] * travelDays;
-    const accommodation = accommodationRates[accommodationType] * travelDays * numberOfTravelers;
+    const transport =transportRates[transportType as keyof typeof transportRates] *travelDays *Math.max(1, numberOfTravelers / 2);
+    const accommodationBase = accommodationRates[accommodationType] * travelDays;
+    const accommodation = accommodationBase + baseDestinationCost;
     const meals = foodRates[foodBudget] * travelDays * numberOfTravelers;
-    const activities = activitiesRate * selectedDestinations.length * numberOfTravelers;
+    const activities =
+  selectedDestinations.length * activitiesRate;
+
+
 
     return {
       transport,
@@ -45,7 +61,18 @@ export function Budget() {
     };
   };
 
-  const costs = calculateCosts();
+  const costs = useMemo(
+  () => calculateCosts(),
+  [
+    selectedDestinations,
+    travelDays,
+    numberOfTravelers,
+    travelStyle,
+    transportType,
+    accommodationType,
+    foodBudget,
+  ]
+);
 
   const costBreakdown = [
     {
@@ -53,28 +80,28 @@ export function Budget() {
       label: 'Transport',
       amount: costs.transport,
       color: 'from-[#0369a1] to-[#0ea5e9]',
-      percentage: (costs.transport / costs.total) * 100,
+      percentage: costs.total ? (costs.transport / costs.total) * 100 : 0
     },
     {
       icon: Hotel,
       label: 'Accommodation',
       amount: costs.accommodation,
       color: 'from-[#059669] to-[#10b981]',
-      percentage: (costs.accommodation / costs.total) * 100,
+      percentage: costs.total ? (costs.accommodation / costs.total) * 100 : 0
     },
     {
       icon: Utensils,
       label: 'Meals',
       amount: costs.meals,
       color: 'from-[#fbbf24] to-[#f59e0b]',
-      percentage: (costs.meals / costs.total) * 100,
+      percentage: costs.total ? (costs.meals / costs.total) * 100 : 0,
     },
     {
       icon: MapPin,
       label: 'Activities',
       amount: costs.activities,
       color: 'from-[#8b5cf6] to-[#a78bfa]',
-      percentage: (costs.activities / costs.total) * 100,
+      percentage: costs.total ? (costs.activities / costs.total) * 100 : 0,
     },
   ];
 
@@ -214,7 +241,7 @@ export function Budget() {
                   <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                     <div
                       className={`h-full bg-gradient-to-r ${item.color} transition-all duration-500`}
-                      style={{ width: `${item.percentage}%` }}
+                      style={{ width: `${Math.min(item.percentage, 100)}%` }}
                     />
                   </div>
                   <p className="text-sm text-gray-600 mt-2">
