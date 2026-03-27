@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTripStore } from '../store/tripStore';
 import { MapPin, Users, Calendar, Sparkles, CloudSun, UserCircle, Loader2, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router';
 import { destinations } from '../data/destinations';
 import { toast } from 'sonner';
 import { createTrip } from "../../services/api";
-// import MapView from "../../components/MapView";
+import MapView from "../../components/MapView";
+import {selectedDestinations} from "../store/tripStore";
 
 export function TripPlanner() {
   const {
@@ -17,7 +18,28 @@ export function TripPlanner() {
     setTravelStyle,
     setNumberOfTravelers,
     addDestination,
+    setSelectedDestinations,
   } = useTripStore();
+
+  // Load selected destinations from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("tripSelectedDestinations");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setSelectedDestinations(parsed);
+        }
+      } catch (e) {
+        // ignore parse error
+      }
+    }
+  }, [setSelectedDestinations]);
+
+  // Save selected destinations to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("tripSelectedDestinations", JSON.stringify(selectedDestinations));
+  }, [selectedDestinations]);
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [budgetRange, setBudgetRange] = useState<[number, number]>([20, 70]);
@@ -295,8 +317,8 @@ const [loading, setLoading] = useState(false);
             {selectedDestinations.length > 0 && (
               <div className="mt-6 space-y-2">
                 <p className="text-sm text-gray-600 mb-3">Selected Destinations:</p>
-                {selectedDestinations.map((dest: typeof destinations[0], index: number) => (
-                  <div key={dest.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                {selectedDestinations.map((dest: any, index: number) => (
+                  <div key={dest.id || index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <div className="bg-gradient-to-br from-[#0369a1] to-[#059669] w-8 h-8 rounded-full flex items-center justify-center text-white">
                       {index + 1}
                     </div>
@@ -336,7 +358,15 @@ const [loading, setLoading] = useState(false);
 
               <div className="bg-gradient-to-r from-[#fef3c7] to-[#fef9e7] p-4 rounded-lg">
                 <p className="text-sm text-gray-600 mb-1">Destinations</p>
-                <p>{result ? result.trip_plan.length : 0}</p>
+                {selectedDestinations.length === 0 ? (
+                  <p>No destinations added</p>
+                ) : (
+                  selectedDestinations.map((place, index) => (
+                    <div key={place.id || index}>{place.name}</div>
+                  ))
+                )}
+                
+                <p>{result && Array.isArray(result.trip_plan) ? result.trip_plan.length : 0}</p>
                 <p className="text-3xl">{selectedDestinations.length}</p>
               </div>
 
@@ -435,4 +465,4 @@ const [loading, setLoading] = useState(false);
       </div>
     </div>
   );
-}
+  }

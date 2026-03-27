@@ -8,9 +8,11 @@ interface TripStore {
   numberOfTravelers: number;
   addDestination: (destination: Destination) => void;
   removeDestination: (id: string) => void;
+  setSelectedDestinations: (destinations: Destination[]) => void;
   setTravelDays: (days: number) => void;
   setTravelStyle: (style: 'Budget' | 'Standard' | 'Luxury') => void;
   setNumberOfTravelers: (count: number) => void;
+  resetStore: () => void;
 }
 
 export const useTripStore = create<TripStore>((set) => ({
@@ -26,7 +28,17 @@ export const useTripStore = create<TripStore>((set) => ({
     set((state) => ({
       selectedDestinations: state.selectedDestinations.filter((d) => d.id !== id),
     })),
+  setSelectedDestinations: (destinations) => set({ selectedDestinations: destinations }),
   setTravelDays: (days) => set({ travelDays: days }),
   setTravelStyle: (style) => set({ travelStyle: style }),
   setNumberOfTravelers: (count) => set({ numberOfTravelers: count }),
+  resetStore: () => {
+    set({
+      selectedDestinations: [],
+      travelDays: 7,
+      travelStyle: 'Standard',
+      numberOfTravelers: 2,
+    });
+    localStorage.removeItem('tripSelectedDestinations');
+  },
 }));

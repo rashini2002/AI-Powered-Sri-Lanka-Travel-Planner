@@ -21,7 +21,7 @@ export function Explore() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('default');
   
-  const { selectedDestinations, addDestination, removeDestination } = useTripStore();
+  const { selectedDestinations, addDestination, removeDestination, setSelectedDestinations } = useTripStore();
 
   const filteredDestinations = destinations
     .filter((dest) => {
@@ -52,10 +52,14 @@ export function Explore() {
     if (selectedDestinations.find(d => d.id === destination.id)) {
       toast.info('Destination already in your trip');
     } else {
-      addDestination(destination);
+      const updated = [...selectedDestinations, destination];
+      setSelectedDestinations(updated);
+      localStorage.setItem("tripSelectedDestinations", JSON.stringify(updated));
       toast.success(`${destination.name} added to your trip!`);
     }
   };
+
+  // Removed addPlace, now handled in handleAddToTrip
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-[#fef9e7] py-12">

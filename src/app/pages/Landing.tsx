@@ -1,4 +1,6 @@
 import { Link } from 'react-router';
+import { useEffect } from 'react';
+import { useTripStore } from '../store/tripStore';
 import { ArrowRight, Map, Cloud, DollarSign, Calendar, Mountain, Palmtree } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -49,6 +51,10 @@ const features = [
 ];
 
 export function Landing() {
+  const { resetStore } = useTripStore();
+  useEffect(() => {
+    resetStore();
+  }, [resetStore]);
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
